@@ -8,10 +8,12 @@ COLOR = {
     "ENDC": "\033[0m",
 }
 
+
 def extract_assistant_response(output_text):
     """Model-specific code to extract model responses.
 
-    See this doc for LLaMA 3: https://llama.meta.com/docs/model-cards-and-prompt-formats/meta-llama-3/."""
+    See this doc for LLaMA 3: https://llama.meta.com/docs/model-cards-and-prompt-formats/meta-llama-3/.
+    """
     # Split the output text by the assistant header token
     parts = output_text.split("<|start_header_id|>assistant<|end_header_id|>")
 
@@ -26,6 +28,7 @@ def extract_assistant_response(output_text):
     else:
         return output_text
 
+
 class Model:
     def load(self):
 
@@ -37,9 +40,7 @@ class Model:
 
         self.tokenizer = AutoTokenizer.from_pretrained("/trt-engine")
         # LLaMA models do not have a padding token, so we use the EOS token
-        self.tokenizer.add_special_tokens(
-            {"pad_token": self.tokenizer.eos_token}
-        )
+        self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.eos_token})
         # and then we add it from the left, to minimize impact on the output
         self.tokenizer.padding_side = "left"
         self.pad_id = self.tokenizer.pad_token_id
@@ -67,9 +68,7 @@ class Model:
                 repetition_penalty=1.1,
             )
 
-        settings[
-            "max_new_tokens"
-        ] = 1024  # exceeding this will raise an error
+        settings["max_new_tokens"] = 1024  # exceeding this will raise an error
         settings["end_id"] = self.end_id
         settings["pad_id"] = self.pad_id
 
@@ -100,7 +99,6 @@ class Model:
             parsed_prompts, return_tensors="pt", padding=True, truncation=False
         )["input_ids"]
 
-
         outputs_t = self.model.generate(inputs_t, **settings)
 
         outputs_text = self.tokenizer.batch_decode(
@@ -108,14 +106,11 @@ class Model:
         )  # only one output per input, so we index with 0
 
         responses = [
-            extract_assistant_response(output_text)
-            for output_text in outputs_text
+            extract_assistant_response(output_text) for output_text in outputs_text
         ]
         duration_s = (time.monotonic_ns() - start) / 1e9
 
-        num_tokens = sum(
-            map(lambda r: len(self.tokenizer.encode(r)), responses)
-        )
+        num_tokens = sum(map(lambda r: len(self.tokenizer.encode(r)), responses))
 
         for prompt, response in zip(prompts, responses):
             print(
@@ -134,8 +129,7 @@ class Model:
         return responses
 
 
-
 if __name__ == "__main__":
     m = Model()
     m.load()
-    m.generate(prompts = ["hello, who are you?"])
+    m.generate(prompts=["hello, who are you?"])

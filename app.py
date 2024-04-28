@@ -1,17 +1,33 @@
 import argparse
-import json
-from typing import AsyncGenerator
-
 import uvicorn
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+
+from model import ChatCompletionRequest, ChatCompletionResponse
+from fastapi import FastAPI
+from fastapi.responses import Response, StreamingResponse
 
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
-TIMEOUT_TO_PREVENT_DEADLOCK = 1  # seconds.
 app = FastAPI()
 
-engine = None
+DEFAULT = """{
+    "id": "chatcmpl-123",
+    "object": "chat.completion",
+    "created": 1677652288,
+    "model": "gpt-3.5-turbo-0125",
+    "system_fingerprint": "fp_44709d6fcb",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": ""
+            },
+            "logprobs": null,
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21}
+}"""
 
 
 @app.get("/health")
@@ -21,8 +37,9 @@ async def health() -> Response:
 
 
 @app.post("/v1/chat/completions")
-async def generate(request: Request) -> Response:
+async def generate(request: ChatCompletionRequest) -> ChatCompletionResponse:
     # Streaming case
+    # from typing import AsyncGenerator
     # async def stream_results() -> AsyncGenerator[bytes, None]:
     #     async for request_output in results_generator:
     #         prompt = request_output.prompt
@@ -33,9 +50,7 @@ async def generate(request: Request) -> Response:
     # if stream:
     #     return StreamingResponse(stream_results())
 
-    # Non-streaming case
-
-    return JSONResponse({"text": "hello"})
+    return ChatCompletionResponse.model_validate_json(DEFAULT)
 
 
 if __name__ == "__main__":
