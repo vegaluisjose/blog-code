@@ -1,7 +1,13 @@
 import argparse
 import uvicorn
 
-from model import ChatCompletionRequest, ChatCompletionResponse
+from model import (
+    ChatCompletionRequest,
+    ChatCompletionResponse,
+    ChatCompletionChoice,
+    ChatCompletionMessage,
+    ChatMessageRole,
+)
 from fastapi import FastAPI
 from fastapi.responses import Response, StreamingResponse
 
@@ -10,23 +16,14 @@ TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 
 DEFAULT = """{
-    "id": "chatcmpl-123",
-    "object": "chat.completion",
-    "created": 1677652288,
-    "model": "gpt-3.5-turbo-0125",
-    "system_fingerprint": "fp_44709d6fcb",
     "choices": [
         {
-            "index": 0,
             "message": {
                 "role": "assistant",
-                "content": ""
-            },
-            "logprobs": null,
-            "finish_reason": "stop"
+                "content": "hello"
+            }
         }
-    ],
-    "usage": {"prompt_tokens": 9, "completion_tokens": 12, "total_tokens": 21}
+    ]
 }"""
 
 
@@ -50,7 +47,11 @@ async def generate(request: ChatCompletionRequest) -> ChatCompletionResponse:
     # if stream:
     #     return StreamingResponse(stream_results())
 
-    return ChatCompletionResponse.model_validate_json(DEFAULT)
+    message = ChatCompletionMessage(role=ChatMessageRole.Assistant, content="foo")
+    choice = ChatCompletionChoice(message=message)
+    response = ChatCompletionResponse(choices=[choice])
+
+    return response
 
 
 if __name__ == "__main__":

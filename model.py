@@ -23,7 +23,7 @@ class ChatCompletionMessage(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: str
+    model: str = "model"
     messages: List[ChatCompletionMessage]
     max_tokens: Optional[int] = Field(None, alias="max_tokens")
     temperature: Optional[float] = Field(None, alias="temperature")
@@ -38,21 +38,21 @@ class ChatCompletionRequest(BaseModel):
 
 
 class ChatCompletionChoice(BaseModel):
-    index: int
+    index: int = 0
     message: ChatCompletionMessage
-    finish_reason: str = Field(..., alias="finish_reason")
+    finish_reason: str = Field("stop", alias="finish_reason")
 
 
 class Usage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
 
 
 class ChatCompletionResponse(BaseModel):
-    id: str = Field(..., alias="id")
-    object: str = Field(..., alias="object")
-    created: int = Field(..., alias="created")
-    model: str = Field(..., alias="model")
+    id: str = Field("chatcmpl-123", alias="id")
+    object: str = Field("chat.completion", alias="object")
+    created: int = Field(1677652288, alias="created")
+    model: str = Field("model", alias="model")
     choices: List[ChatCompletionChoice]
-    usage: Usage
+    usage: Usage = Usage()
