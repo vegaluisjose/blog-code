@@ -38,16 +38,14 @@ class Model:
         from tensorrt_llm.runtime import ModelRunner
         from transformers import AutoTokenizer
 
-        self.tokenizer = AutoTokenizer.from_pretrained("/trt-engine")
+        self.tokenizer = AutoTokenizer.from_pretrained("/engine")
         # LLaMA models do not have a padding token, so we use the EOS token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.eos_token})
         # and then we add it from the left, to minimize impact on the output
         self.tokenizer.padding_side = "left"
-        self.pad_id = self.tokenizer.pad_token_id
-        self.end_id = self.tokenizer.eos_token_id
 
         runner_kwargs = dict(
-            engine_dir="/trt-engine",
+            engine_dir="/engine",
             lora_dir=None,
             rank=tensorrt_llm.mpi_rank(),  # this will need to be adjusted to use multiple GPUs
         )
@@ -68,9 +66,11 @@ class Model:
                 repetition_penalty=1.1,
             )
 
-        settings["max_new_tokens"] = 1024  # exceeding this will raise an error
-        settings["end_id"] = self.end_id
-        settings["pad_id"] = self.pad_id
+        # eod_id is 128009, lets use that for end_id and pad_id
+
+        settings["max_new_tokens"] = 8000  # exceeding this will raise an error
+        settings["end_id"] = 128009
+        settings["pad_id"] = 128009
 
         num_prompts = len(prompts)
 
@@ -132,4 +132,4 @@ class Model:
 if __name__ == "__main__":
     m = Model()
     m.load()
-    m.generate(prompts=["hello, who are you?"])
+    m.generate(prompts=["what is 3333+777?"])
