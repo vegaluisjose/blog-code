@@ -20,7 +20,7 @@ docker run \
         --output_dir=/trt-engine \
         --tp_size=1 \
         --workers=1 \
-        --max_batch_size=1 \
+        --max_batch_size=4 \
         --max_input_len=8192 \
         --max_output_len=8192 \
         --gemm_plugin=float16 \

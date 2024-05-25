@@ -38,7 +38,7 @@ class Model:
         from tensorrt_llm.runtime import ModelRunner
         from transformers import AutoTokenizer
 
-        self.tokenizer = AutoTokenizer.from_pretrained("/engine")
+        self.tokenizer = AutoTokenizer.from_pretrained("/tokenizer")
         # LLaMA models do not have a padding token, so we use the EOS token
         self.tokenizer.add_special_tokens({"pad_token": self.tokenizer.eos_token})
         # and then we add it from the left, to minimize impact on the output
@@ -98,6 +98,9 @@ class Model:
         inputs_t = self.tokenizer(
             parsed_prompts, return_tensors="pt", padding=True, truncation=False
         )["input_ids"]
+
+        print("shape", inputs_t.shape)
+        print("settings", settings)
 
         outputs_t = self.model.generate(inputs_t, **settings)
 
