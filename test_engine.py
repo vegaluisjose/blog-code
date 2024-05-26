@@ -3,7 +3,7 @@ from tensorrt_llm.runtime import ModelRunner
 from transformers import AutoTokenizer
 
 
-def generate(user_prompt: str):
+def generate(user_prompt: str, max_new_tokens: int = 128):
     # Get tokenizer from a folder
     tokenizer = AutoTokenizer.from_pretrained("/tokenizer")
 
@@ -41,31 +41,33 @@ def generate(user_prompt: str):
         "temperature": 0.1,
         "top_k": 1,
         "repetition_penalty": 1.1,
-        "max_new_tokens": 32,
+        "max_new_tokens": max_new_tokens,
         "end_id": tokenizer.eos_token_id,
         "pad_id": tokenizer.eos_token_id,
+        "streaming": True,
     }
 
     # run inference
     outputs = engine.generate(inputs, **inference_opt)
 
     # tokenizer (decode)
-    # the outputs tensor contains both input and output tokens
-    # therefore me need to slice it
+
+    # number of input tokens is the same as the beginning of the output
     start = inputs.size(-1)
-    end = outputs.size(-1)
-    text = ""
-    for i in range(start, end):
-        token = outputs[0][0][i].item()
+
+    # for streaming we decode one token at the time and return a generator
+    for i, out in enumerate(outputs):
+        token = out[0][0][start + i].item()
         # found last token
         if token == tokenizer.eos_token_id:
             break
-        text += tokenizer.decode([token])
-
-    return text
+        yield tokenizer.decode([token])
 
 
 if __name__ == "__main__":
-    question = "what is 4424+890?"
-    answer = generate(question)
-    print(f"\n\n{question} -> {answer}")
+    question = "what is life is like a box of chocolates?"
+    print(f"\n\n{question}\n")
+    gen = generate(question, max_new_tokens=128)
+    for x in gen:
+        print(x, end="")
+    print()
