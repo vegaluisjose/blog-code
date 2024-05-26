@@ -50,16 +50,22 @@ def generate(user_prompt: str):
     outputs = engine.generate(inputs, **inference_opt)
 
     # tokenizer (decode)
+    # the outputs tensor contains both input and output tokens
+    # therefore me need to slice it
+    start = inputs.size(-1)
+    end = outputs.size(-1)
     text = ""
-    for out in outputs[0][0]:
-        token = out.item()
+    for i in range(start, end):
+        token = outputs[0][0][i].item()
         # found last token
-        # if token == tokenizer.eos_token_id:
-        #     break
-        text += tokenizer.decode([out])
+        if token == tokenizer.eos_token_id:
+            break
+        text += tokenizer.decode([token])
 
-    print(text)
+    return text
 
 
 if __name__ == "__main__":
-    generate("What is 4424+890?")
+    question = "what is 4424+890?"
+    answer = generate(question)
+    print(f"\n\n{question} -> {answer}")
