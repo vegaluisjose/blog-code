@@ -50,9 +50,7 @@ def generate(user_prompt: str, max_new_tokens: int = 128):
     # run inference
     outputs = engine.generate(inputs, **inference_opt)
 
-    # tokenizer (decode)
-
-    # number of input tokens is the same as the beginning of the output
+    # number of input tokens
     start = inputs.size(-1)
 
     # for streaming we decode one token at the time and return a generator
